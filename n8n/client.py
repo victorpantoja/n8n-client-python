@@ -41,7 +41,7 @@ class Client(object):
     def patch(self, uri, data: dict = None):
         return self._execute("patch", uri, data=data)
 
-    def create_workflow(self, name):
+    def create_workflow(self, name: str):
         data = {
             "name": name,
             "nodes": [
@@ -88,7 +88,7 @@ class Client(object):
         return self.get(uri).json()
 
     def delete_credential(self, credential_id: int):
-        self.delete(f"credentials/{credential_id}").json()
+        return self.delete(f"credentials/{credential_id}").json()
 
     def get_credential_definition(self, name: str):
         credentials = self.get("credential-types").json()["data"]
@@ -195,12 +195,14 @@ class Client(object):
 
         return self.post("workflows/run", content).json()
 
-    def delete_node(self, workflow_id: int, node_name: str, connections: dict):
+    def delete_node(self, workflow_id: int, node_name: str, connections: dict,
+                    deactivate=False):
         workflow = self.get_workflow(workflow_id)["data"]
 
         new_nodes = [
             node for node in workflow["nodes"] if node["name"] != node_name]
 
+        workflow["active"] = not deactivate
         workflow["nodes"] = new_nodes
         workflow["connections"] = connections or {}
 
