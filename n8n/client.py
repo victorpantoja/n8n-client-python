@@ -128,6 +128,25 @@ class Client(object):
 
         return self.post("credentials", content).json()
 
+    def change_credentials(
+            self, credential_id: int, name: str, credential_type: str,
+            nodes_access: list, data: dict):
+        content = {
+            "name": name,
+            "type": credential_type,
+            "nodesAccess": [],
+            "data": data
+        }
+
+        for node in nodes_access:
+            content["nodesAccess"].append(
+                {
+                    "nodeType": node
+                }
+            )
+
+        return self.patch(f"credentials/{credential_id}", content).json()
+
     def activate_workflow(self, workflow_id: int):
         workflow = self.get_workflow(workflow_id)["data"]
 
