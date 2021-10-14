@@ -1,14 +1,25 @@
 import requests
+from requests.auth import HTTPBasicAuth
 
 from n8n.exceptions import InvalidRequestException
 
 
 class Client(object):
 
-    def __init__(self, protocol=None, host=None, port=5678):
+    def __init__(self, protocol=None, host=None, port=5678,
+                 authentication_enabled=False, username=None, password=None):
         self.protocol = protocol or "http"
         self.host = host or "localhost"
         self.port = port
+
+        # authentication
+        self.authentication_enabled = authentication_enabled
+
+        if authentication_enabled and not username or not password:
+            raise AttributeError("Both username and password must be given")
+
+        self.username = username
+        self.password = password
 
     @property
     def api_url(self):
@@ -18,10 +29,14 @@ class Client(object):
         url = f"{self.api_url}{uri}" if uri.startswith("?") \
             else f"{self.api_url}/{uri}"
 
+        auth = HTTPBasicAuth(self.username, self.password) \
+            if self.authentication_enabled else None
+
         if data:
-            resp = getattr(requests, method)(url, json=data, timeout=20)
+            resp = getattr(requests, method)(url, json=data, timeout=20,
+                                             auth=auth)
         else:
-            resp = getattr(requests, method)(url, timeout=10)
+            resp = getattr(requests, method)(url, timeout=10, auth=auth)
 
         if resp.status_code not in [200, 201]:
             raise InvalidRequestException(
