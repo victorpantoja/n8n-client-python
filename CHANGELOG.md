@@ -1,6 +1,11 @@
 # n8n-client-python Changelog
 The version numbers are according to [Semantic Versioning](http://semver.org/).
 
+## Release 0.4.0 (2020-10-14)
+### Improvements
+- Enabled authentication
+
+
 ## Release 0.3.0 (2020-09-29)
 ### Improvements
 - Added method to change a credential
