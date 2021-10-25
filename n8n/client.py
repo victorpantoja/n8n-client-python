@@ -1,7 +1,9 @@
+import json
+
 import requests
 from requests.auth import HTTPBasicAuth
 
-from n8n.exceptions import InvalidRequestException
+from n8n.exceptions import InvalidRequestException, ResourceNotFoundException
 
 
 class Client(object):
@@ -37,6 +39,9 @@ class Client(object):
                                              auth=auth)
         else:
             resp = getattr(requests, method)(url, timeout=10, auth=auth)
+
+        if resp.status_code == 404:
+            raise ResourceNotFoundException("Resource not Found")
 
         if resp.status_code not in [200, 201]:
             raise InvalidRequestException(
@@ -87,6 +92,19 @@ class Client(object):
 
     def get_node_icon(self, node_name: str):
         return self.get(f"node-icon/{node_name}")
+
+    def get_node_parameter_options(
+            self, node_type: str, path: str, method: str,
+            credentials: dict, current_node_parameters: dict = None):
+
+        current_node_parameters = current_node_parameters or {}
+
+        uri = f"node-parameter-options?nodeType={node_type}" \
+              f"&path={path}&methodName={method}" \
+              f"&credentials={json.dumps(credentials)}" \
+              f"&currentNodeParameters={json.dumps(current_node_parameters)}"
+
+        return self.get(uri).json()
 
     def get_credentials_types(self):
         return self.get("credential-types").json()

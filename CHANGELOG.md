@@ -1,6 +1,11 @@
 # n8n-client-python Changelog
 The version numbers are according to [Semantic Versioning](http://semver.org/).
 
+## Release 0.5.0 (2020-10-25)
+### Improvements
+- Get node parameter options
+
+
 ## Release 0.4.0 (2020-10-14)
 ### Improvements
 - Enabled authentication
