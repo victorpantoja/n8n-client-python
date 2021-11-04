@@ -1,6 +1,7 @@
 import json
 
 import requests
+import ujson
 from requests.auth import HTTPBasicAuth
 
 from n8n.exceptions import InvalidRequestException, ResourceNotFoundException
@@ -88,7 +89,12 @@ class Client(object):
         return self.get("node-types").json()
 
     def get_nodes_details(self, node_names: list):
-        return self.post("node-types", data={"nodeNames": node_names}).json()
+        nodes = []
+
+        for node_name in node_names:
+            nodes.append({"name": node_name})
+
+        return self.post("node-types", data={"nodeInfos": nodes}).json()
 
     def get_node_icon(self, node_name: str):
         return self.get(f"node-icon/{node_name}")
@@ -99,7 +105,10 @@ class Client(object):
 
         current_node_parameters = current_node_parameters or {}
 
-        uri = f"node-parameter-options?nodeType={node_type}" \
+        node_type_and_version = {"name": node_type, "version": 1}
+
+        uri = f"node-parameter-options" \
+              f"?nodeTypeAndVersion={json.dumps(node_type_and_version)}" \
               f"&path={path}&methodName={method}" \
               f"&credentials={json.dumps(credentials)}" \
               f"&currentNodeParameters={json.dumps(current_node_parameters)}"
