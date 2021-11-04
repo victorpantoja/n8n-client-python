@@ -1,6 +1,11 @@
 # n8n-client-python Changelog
 The version numbers are according to [Semantic Versioning](http://semver.org/).
 
+## Release 0.6.0 (2020-11-04)
+### Improvements
+- Make it compatible with n8n v0.145.0
+
+
 ## Release 0.5.0 (2020-10-25)
 ### Improvements
 - Get node parameter options
