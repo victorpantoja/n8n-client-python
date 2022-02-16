@@ -1,31 +1,36 @@
 # n8n-client-python Changelog
 The version numbers are according to [Semantic Versioning](http://semver.org/).
 
-## Release 0.6.0 (2020-11-04)
+## Release 0.6.1 (2022-02-16)
+### Improvements
+- Chanage "change_node" signature
+
+
+## Release 0.6.0 (2021-11-04)
 ### Improvements
 - Make it compatible with n8n v0.145.0
 
 
-## Release 0.5.0 (2020-10-25)
+## Release 0.5.0 (2021-10-25)
 ### Improvements
 - Get node parameter options
 
 
-## Release 0.4.0 (2020-10-14)
+## Release 0.4.0 (2021-10-14)
 ### Improvements
 - Enabled authentication
 
 
-## Release 0.3.0 (2020-09-29)
+## Release 0.3.0 (2021-09-29)
 ### Improvements
 - Added method to change a credential
 
 
-## Release 0.2.1 (2020-09-29)
+## Release 0.2.1 (2021-09-29)
 ### Improvements
 - Change license to MIT
 
 
-## Release 0.2.0 (2020-09-27)
+## Release 0.2.0 (2021-09-27)
 ### Improvements
 - Added option to deactivate a workflow when a node gets deleted

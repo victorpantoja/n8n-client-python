@@ -204,7 +204,6 @@ class Client(object):
         return self.patch(f"workflows/{workflow_id}", data=workflow).json()
 
     def add_node(self, workflow_id: int, node: dict, connections: dict = None):
-
         workflow = self.get_workflow(workflow_id)["data"]
 
         workflow["nodes"].append(node)
@@ -212,29 +211,29 @@ class Client(object):
 
         return self.patch(f"workflows/{workflow_id}", data=workflow).json()
 
-    def change_node(self, workflow_id: int, node: dict, position: list = None,
-                    credentials: dict = None, connections: dict = None):
+    def change_node(self, workflow_id: int, node_name, changed_node: dict,
+                    position: list = None, credentials: dict = None,
+                    connections: dict = None):
 
         workflow = self.get_workflow(workflow_id)["data"]
 
         changed_nodes = []
 
         for original_node in workflow["nodes"]:
-            original_node_name = original_node.get("displayName") or original_node["name"]
-            changed_node_name = node.get("displayName") or node["name"]
+            original_node_name = original_node["name"]
 
-            if original_node_name == changed_node_name:
+            if original_node_name == node_name:
                 # replace current node with new node, that is, edit the node
 
                 # don't touch credentials if not given
-                node["credentials"] = original_node.get("credentials") \
+                changed_node["credentials"] = original_node.get("credentials") \
                     if credentials is None else credentials
 
                 # don't touch position if not given
-                node["position"] = original_node["position"] \
+                changed_node["position"] = original_node["position"] \
                     if position is None else position
 
-                changed_nodes.append(node)
+                changed_nodes.append(changed_node)
             else:
                 changed_nodes.append(original_node)
 
