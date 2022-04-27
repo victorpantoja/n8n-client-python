@@ -1,9 +1,15 @@
 # n8n-client-python Changelog
 The version numbers are according to [Semantic Versioning](http://semver.org/).
 
+## Release 0.7.0 (2022-04-27)
+### Improvements
+- Get executions
+- Update a workflow
+
+
 ## Release 0.6.1 (2022-02-16)
 ### Improvements
-- Chanage "change_node" signature
+- Change "change_node" signature
 
 
 ## Release 0.6.0 (2021-11-04)

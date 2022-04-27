@@ -1,7 +1,6 @@
 import json
-
 import requests
-import ujson
+from urllib.parse import urlencode
 from requests.auth import HTTPBasicAuth
 
 from n8n.exceptions import InvalidRequestException, ResourceNotFoundException
@@ -24,13 +23,14 @@ class Client(object):
         self.username = username
         self.password = password
 
-    @property
-    def api_url(self):
-        return f"{self.protocol}://{self.host}:{self.port}/rest"
+    def api_url(self, is_rest=True):
+        url = f"{self.protocol}://{self.host}:{self.port}"
 
-    def _execute(self, method, uri, data=None):
-        url = f"{self.api_url}{uri}" if uri.startswith("?") \
-            else f"{self.api_url}/{uri}"
+        return url if not is_rest else f"{url}/rest"
+
+    def _execute(self, method, uri, data=None, is_rest=True):
+        url = f"{self.api_url(is_rest)}{uri}" if uri.startswith("?") \
+            else f"{self.api_url(is_rest)}/{uri}"
 
         auth = HTTPBasicAuth(self.username, self.password) \
             if self.authentication_enabled else None
@@ -50,17 +50,17 @@ class Client(object):
 
         return resp
 
-    def post(self, uri, data):
-        return self._execute("post", uri, data)
+    def post(self, uri, data, is_rest=True):
+        return self._execute("post", uri, data, is_rest=is_rest)
 
-    def get(self, uri):
-        return self._execute("get", uri)
+    def get(self, uri, is_rest=True):
+        return self._execute("get", uri, is_rest=is_rest)
 
-    def delete(self, uri):
-        return self._execute("delete", uri)
+    def delete(self, uri, is_rest=True):
+        return self._execute("delete", uri, is_rest=is_rest)
 
-    def patch(self, uri, data: dict = None):
-        return self._execute("patch", uri, data=data)
+    def patch(self, uri, data: dict = None, is_rest=True):
+        return self._execute("patch", uri, data=data, is_rest=is_rest)
 
     def create_workflow(self, name: str):
         data = {
@@ -153,6 +153,25 @@ class Client(object):
     def delete_workflow(self, workflow_id: int):
         return self.delete(f"workflows/{workflow_id}").json()
 
+    def get_executions(self, workflow_id: int, limit: int = None):
+        query = {"workflowId": f"{workflow_id}"}
+
+        uri = f"executions?filter={json.dumps(query)}"
+
+        if limit:
+            uri += f"&limit={limit}"
+
+        return self.get(uri).json()
+
+    def get_execution(self, execution_id: int,
+                      unflatted_response: bool = False):
+        uri = f"executions/{execution_id}"
+
+        if unflatted_response:
+            uri += "?unflattedResponse=true"
+
+        return self.get(uri).json()
+
     def add_credentials(self, name: str, credential_type: str, nodes_access: list, data: dict):
         content = {
             "name": name,
@@ -200,6 +219,14 @@ class Client(object):
         workflow = self.get_workflow(workflow_id)["data"]
 
         workflow["active"] = False
+
+        return self.patch(f"workflows/{workflow_id}", data=workflow).json()
+
+    def update(self, workflow_id: int, nodes: list, connections: dict):
+        workflow = self.get_workflow(workflow_id)["data"]
+
+        workflow["nodes"] = nodes
+        workflow["connections"] = connections
 
         return self.patch(f"workflows/{workflow_id}", data=workflow).json()
 
