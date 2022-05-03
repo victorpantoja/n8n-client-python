@@ -1,13 +1,11 @@
 import json
 import requests
-from urllib.parse import urlencode
 from requests.auth import HTTPBasicAuth
 
 from n8n.exceptions import InvalidRequestException, ResourceNotFoundException
 
 
 class Client(object):
-
     def __init__(self, protocol=None, host=None, port=5678,
                  authentication_enabled=False, username=None, password=None):
         self.protocol = protocol or "http"
@@ -23,12 +21,18 @@ class Client(object):
         self.username = username
         self.password = password
 
+        self._cookies = None
+        self._login_attempts = 0
+
     def api_url(self, is_rest=True):
         url = f"{self.protocol}://{self.host}:{self.port}"
 
         return url if not is_rest else f"{url}/rest"
 
-    def _execute(self, method, uri, data=None, is_rest=True):
+    def _execute(self, method, uri, data=None, is_rest=True, check_login=True):
+        if check_login and not self._cookies:
+            self.login()
+
         url = f"{self.api_url(is_rest)}{uri}" if uri.startswith("?") \
             else f"{self.api_url(is_rest)}/{uri}"
 
@@ -36,10 +40,18 @@ class Client(object):
             if self.authentication_enabled else None
 
         if data:
-            resp = getattr(requests, method)(url, json=data, timeout=20,
-                                             auth=auth)
+            resp = getattr(requests, method)(
+                url, json=data, timeout=20, auth=auth, cookies=self._cookies)
         else:
-            resp = getattr(requests, method)(url, timeout=10, auth=auth)
+            resp = getattr(requests, method)(
+                url, timeout=10, auth=auth, cookies=self._cookies)
+
+        if resp.status_code == 401 and self._login_attempts == 0:
+            self._cookies = None
+            # if it fails again, it's not due the cookie
+            self._login_attempts = 1
+            self._execute(method=method, uri=uri, data=data, is_rest=is_rest,
+                          check_login=check_login)
 
         if resp.status_code == 404:
             raise ResourceNotFoundException("Resource not Found")
@@ -53,14 +65,20 @@ class Client(object):
     def post(self, uri, data, is_rest=True):
         return self._execute("post", uri, data, is_rest=is_rest)
 
-    def get(self, uri, is_rest=True):
-        return self._execute("get", uri, is_rest=is_rest)
+    def get(self, uri, is_rest=True, check_login=True):
+        return self._execute("get", uri, is_rest=is_rest, check_login=check_login)
 
     def delete(self, uri, is_rest=True):
         return self._execute("delete", uri, is_rest=is_rest)
 
     def patch(self, uri, data: dict = None, is_rest=True):
         return self._execute("patch", uri, data=data, is_rest=is_rest)
+
+    def login(self):
+        resp = self.get(uri="login", check_login=False)
+        self._cookies = resp.cookies
+
+        return resp
 
     def create_workflow(self, name: str):
         data = {

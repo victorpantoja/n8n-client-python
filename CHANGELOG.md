@@ -1,6 +1,11 @@
 # n8n-client-python Changelog
 The version numbers are according to [Semantic Versioning](http://semver.org/).
 
+## Release 0.8.0 (2022-05-03)
+### Improvements
+- Make it compatible with n8n 0.174.0
+
+
 ## Release 0.7.0 (2022-04-27)
 ### Improvements
 - Get executions
