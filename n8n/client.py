@@ -29,7 +29,8 @@ class Client(object):
 
         return url if not is_rest else f"{url}/rest"
 
-    def _execute(self, method, uri, data=None, is_rest=True, check_login=True):
+    def _execute(self, method, uri, data=None, is_rest=True, check_login=True,
+                 stream: bool = False, session_id: str = None):
         if check_login and not self._cookies:
             self.login()
 
@@ -39,19 +40,30 @@ class Client(object):
         auth = HTTPBasicAuth(self.username, self.password) \
             if self.authentication_enabled else None
 
+        if stream:
+            timeout = None
+        elif data and not stream:
+            timeout = 20
+        else:
+            timeout = 10
+
+        headers = {"sessionid": session_id} if session_id else None
+
         if data:
             resp = getattr(requests, method)(
-                url, json=data, timeout=20, auth=auth, cookies=self._cookies)
+                url, json=data, timeout=timeout, auth=auth,
+                cookies=self._cookies, stream=stream, headers=headers)
         else:
             resp = getattr(requests, method)(
-                url, timeout=10, auth=auth, cookies=self._cookies)
+                url, timeout=timeout, auth=auth, cookies=self._cookies,
+                stream=stream, headers=headers)
 
         if resp.status_code == 401 and self._login_attempts == 0:
             self._cookies = None
-            # if it fails again, it's not due the cookie
+            # if it fails again, it's not due to the cookie
             self._login_attempts = 1
             self._execute(method=method, uri=uri, data=data, is_rest=is_rest,
-                          check_login=check_login)
+                          check_login=check_login, session_id=session_id)
 
         if resp.status_code == 404:
             raise ResourceNotFoundException("Resource not Found")
@@ -62,11 +74,12 @@ class Client(object):
 
         return resp
 
-    def post(self, uri, data, is_rest=True):
-        return self._execute("post", uri, data, is_rest=is_rest)
+    def post(self, uri, data, is_rest=True, session_id: str = None):
+        return self._execute("post", uri, data, is_rest=is_rest,
+                             session_id=session_id)
 
-    def get(self, uri, is_rest=True, check_login=True):
-        return self._execute("get", uri, is_rest=is_rest, check_login=check_login)
+    def get(self, uri, is_rest=True, check_login=True, stream=False):
+        return self._execute("get", uri, is_rest=is_rest, check_login=check_login, stream=stream)
 
     def delete(self, uri, is_rest=True):
         return self._execute("delete", uri, is_rest=is_rest)
@@ -288,17 +301,16 @@ class Client(object):
 
         return self.patch(f"workflows/{workflow_id}", data=workflow).json()
 
-    def execute_node(self, workflow_id: int, node_name: str, run_data: dict):
+    def execute_node(self, workflow_id: int, node_name: str, session_id: str):
         workflow = self.get(f"workflows/{workflow_id}").json()["data"]
 
         content = {
             "workflowData": workflow,
-            "runData": run_data,
             "startNodes": [node_name],
             "destinationNode": node_name,
         }
 
-        return self.post("workflows/run", content).json()
+        return self.post("workflows/run", content, session_id=session_id).json()
 
     def delete_node(self, workflow_id: int, node_name: str, connections: dict,
                     deactivate=False):
