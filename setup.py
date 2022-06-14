@@ -9,7 +9,7 @@ def read(fname):
 
 setup(
     name='n8n',
-    version='0.8.0',
+    version='0.9.0',
     packages=find_packages(),
     include_package_data=True,
     license='GPLv3',
@@ -19,7 +19,7 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 3 - Beta",
     ],
     install_requires=[
         "requests"
