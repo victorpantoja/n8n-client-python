@@ -253,11 +253,15 @@ class Client(object):
 
         return self.patch(f"workflows/{workflow_id}", data=workflow).json()
 
-    def update(self, workflow_id: int, nodes: list, connections: dict):
+    def update(self, workflow_id: int, nodes: list, connections: dict,
+               active: bool = None):
         workflow = self.get_workflow(workflow_id)["data"]
 
         workflow["nodes"] = nodes
         workflow["connections"] = connections
+
+        if active is not None:
+            workflow["active"] = active
 
         return self.patch(f"workflows/{workflow_id}", data=workflow).json()
 
@@ -301,11 +305,13 @@ class Client(object):
 
         return self.patch(f"workflows/{workflow_id}", data=workflow).json()
 
-    def execute_node(self, workflow_id: int, node_name: str, session_id: str):
-        workflow = self.get(f"workflows/{workflow_id}").json()["data"]
+    def execute_node(self, workflow_id: int, node_name: str, session_id: str,
+                     workflow_data: dict = None):
+        workflow_data = workflow_data \
+                       or self.get(f"workflows/{workflow_id}").json()["data"]
 
         content = {
-            "workflowData": workflow,
+            "workflowData": workflow_data,
             "startNodes": [node_name],
             "destinationNode": node_name,
         }
