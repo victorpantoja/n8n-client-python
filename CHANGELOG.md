@@ -1,6 +1,11 @@
 # n8n-client-python Changelog
 The version numbers are according to [Semantic Versioning](http://semver.org/).
 
+## Release 0.9.1 (2022-12-21)
+### Improvements
+- Added support to start and stop a workflow
+
+
 ## Release 0.9.1 (2022-06-14)
 ### Bugfixes
 - Fixed classifier
