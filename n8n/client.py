@@ -78,7 +78,7 @@ class Client(object):
 
         return resp
 
-    def post(self, uri, data, is_rest=True, session_id: str = None):
+    def post(self, uri, data=None, is_rest=True, session_id: str = None):
         return self._execute("post", uri, data, is_rest=is_rest,
                              session_id=session_id)
 
@@ -335,7 +335,7 @@ class Client(object):
         return self.post("workflows/run", content, session_id=session_id).json()
 
     # /rest/executions-current/101211/stop
-    def stop_execution(self, execution_id: int, session_id: string):
+    def stop_execution(self, execution_id: int, session_id: str):
         return self.post(f"executions-current/{execution_id}/stop", session_id=session_id).json()
 
     def delete_node(self, workflow_id: int, node_name: str, connections: dict,
