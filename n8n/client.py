@@ -30,7 +30,8 @@ class Client(object):
         return url if not is_rest else f"{url}/rest"
 
     def _execute(self, method, uri, data=None, is_rest=True, check_login=True,
-                 stream: bool = False, session_id: str = None):
+                 stream: bool = False, session_id: str = None,
+                 headers: dict = None):
         if check_login and not self._cookies:
             self.login()
 
@@ -47,7 +48,10 @@ class Client(object):
         else:
             timeout = 10
 
-        headers = {"sessionid": session_id} if session_id else None
+        headers = headers or {}
+
+        if session_id:
+            headers["sessionid"] = session_id
 
         if data:
             resp = getattr(requests, method)(
@@ -78,8 +82,10 @@ class Client(object):
         return self._execute("post", uri, data, is_rest=is_rest,
                              session_id=session_id)
 
-    def get(self, uri, is_rest=True, check_login=True, stream=False):
-        return self._execute("get", uri, is_rest=is_rest, check_login=check_login, stream=stream)
+    def get(self, uri, is_rest=True, check_login=True, stream=False, headers=None):
+        return self._execute(
+            "get", uri, is_rest=is_rest, check_login=check_login,
+            stream=stream, headers=headers)
 
     def delete(self, uri, is_rest=True):
         return self._execute("delete", uri, is_rest=is_rest)
@@ -184,13 +190,23 @@ class Client(object):
     def delete_workflow(self, workflow_id: int):
         return self.delete(f"workflows/{workflow_id}").json()
 
-    def get_executions(self, workflow_id: int, limit: int = None):
-        query = {"workflowId": f"{workflow_id}"}
+    def get_executions(self, workflow_id: int = None, limit: int = None,
+                       last_execution_id: int = None):
+        query = {}
+
+        if workflow_id:
+            query["workflowId"] = workflow_id
 
         uri = f"executions?filter={json.dumps(query)}"
 
+        if limit or last_execution_id:
+            uri += f"&"
+
         if limit:
-            uri += f"&limit={limit}"
+            uri += f"limit={limit}"
+
+        if last_execution_id:
+            uri += f"lastId={last_execution_id}"
 
         return self.get(uri).json()
 
@@ -317,6 +333,10 @@ class Client(object):
         }
 
         return self.post("workflows/run", content, session_id=session_id).json()
+
+    # /rest/executions-current/101211/stop
+    def stop_execution(self, execution_id: int, session_id: string):
+        return self.post(f"executions-current/{execution_id}/stop", session_id=session_id).json()
 
     def delete_node(self, workflow_id: int, node_name: str, connections: dict,
                     deactivate=False):
