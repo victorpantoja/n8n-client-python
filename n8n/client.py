@@ -199,14 +199,11 @@ class Client(object):
 
         uri = f"executions?filter={json.dumps(query)}"
 
-        if limit or last_execution_id:
-            uri += f"&"
-
         if limit:
-            uri += f"limit={limit}"
+            uri += f"&limit={limit}"
 
         if last_execution_id:
-            uri += f"lastId={last_execution_id}"
+            uri += f"&lastId={last_execution_id}"
 
         return self.get(uri).json()
 
