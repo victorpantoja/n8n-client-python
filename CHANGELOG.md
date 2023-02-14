@@ -1,7 +1,12 @@
 # n8n-client-python Changelog
 The version numbers are according to [Semantic Versioning](http://semver.org/).
 
-## Release 0.9.1 (2022-12-21)
+## Release 0.10.1 (2023-02-13)
+### Bugfixes
+- Proper set query string parameters
+
+
+## Release 0.10.0 (2022-12-21)
 ### Improvements
 - Added support to start and stop a workflow
 
