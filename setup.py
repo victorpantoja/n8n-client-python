@@ -9,7 +9,7 @@ def read(fname):
 
 setup(
     name='n8n',
-    version='0.10.1',
+    version='0.11.0',
     packages=find_packages(),
     include_package_data=True,
     license='GPLv3',

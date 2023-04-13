@@ -1,6 +1,11 @@
 # n8n-client-python Changelog
 The version numbers are according to [Semantic Versioning](http://semver.org/).
 
+## Release 0.11.0 (2023-04-13)
+### Improvements
+- Accept headers on POST requests
+
+
 ## Release 0.10.1 (2023-02-13)
 ### Bugfixes
 - Proper set query string parameters
