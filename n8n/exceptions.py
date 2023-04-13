@@ -1,3 +1,7 @@
+class NotAuthorizedException(Exception):
+    pass
+
+
 class InvalidRequestException(Exception):
     pass
 

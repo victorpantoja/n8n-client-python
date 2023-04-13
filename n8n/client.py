@@ -2,7 +2,8 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 
-from n8n.exceptions import InvalidRequestException, ResourceNotFoundException
+from n8n.exceptions import InvalidRequestException, ResourceNotFoundException, \
+    NotAuthorizedException
 
 
 class Client(object):
@@ -38,8 +39,11 @@ class Client(object):
         url = f"{self.api_url(is_rest)}{uri}" if uri.startswith("?") \
             else f"{self.api_url(is_rest)}/{uri}"
 
+        headers = headers or {}
+
+        # auth is only set during login
         auth = HTTPBasicAuth(self.username, self.password) \
-            if self.authentication_enabled else None
+            if self.authentication_enabled and "Authorization" not in headers else None
 
         if stream:
             timeout = None
@@ -47,8 +51,6 @@ class Client(object):
             timeout = 20
         else:
             timeout = 10
-
-        headers = headers or {}
 
         if session_id:
             headers["sessionid"] = session_id
@@ -69,6 +71,9 @@ class Client(object):
             self._execute(method=method, uri=uri, data=data, is_rest=is_rest,
                           check_login=check_login, session_id=session_id)
 
+        if resp.status_code == 403:
+            raise NotAuthorizedException(resp.content.decode("utf-8"))
+
         if resp.status_code == 404:
             raise ResourceNotFoundException("Resource not Found")
 
@@ -78,9 +83,11 @@ class Client(object):
 
         return resp
 
-    def post(self, uri, data=None, is_rest=True, session_id: str = None):
-        return self._execute("post", uri, data, is_rest=is_rest,
-                             session_id=session_id)
+    def post(self, uri, data=None, is_rest=True, session_id: str = None,
+             headers=None):
+        return self._execute(
+            "post", uri, data, is_rest=is_rest, session_id=session_id,
+            headers=headers)
 
     def get(self, uri, is_rest=True, check_login=True, stream=False, headers=None):
         return self._execute(
